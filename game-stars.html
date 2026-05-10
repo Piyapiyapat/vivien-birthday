@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Catch the Stars ⭐</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; background: linear-gradient(160deg,#050f1e 0%,#0d2340 50%,#071628 100%); min-height: 100vh; color: #e8f4fd; overflow: hidden; user-select: none; -webkit-user-select: none; }
+
+    .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(5,15,30,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(100,180,255,0.1); }
+    .back-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; background: rgba(13,35,64,0.7); border: 1px solid rgba(100,180,255,0.22); border-radius: 100px; color: #90caf9; text-decoration: none; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
+    .header-title { flex: 1; text-align: center; font-size: 0.95rem; color: #bbdefb; }
+    .header-lives { font-size: 1.1rem; letter-spacing: 2px; flex-shrink: 0; min-width: 72px; text-align: right; }
+
+    .score-bar { position: fixed; top: 58px; left: 0; right: 0; z-index: 100; height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: rgba(5,15,30,0.7); border-bottom: 1px solid rgba(100,180,255,0.07); font-size: 0.9rem; color: #7fb8e8; }
+    .score-val { color: #90caf9; font-size: 1rem; }
+
+    /* ── Game area ── */
+    #game-area { position: fixed; top: 100px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+
+    /* ── Falling stars ── */
+    .fstar { position: absolute; top: -60px; animation: fall linear; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: none; filter: drop-shadow(0 0 8px rgba(144,202,249,0.55)); z-index: 5; }
+    @keyframes fall { from { transform: translateY(0); } to { transform: translateY(calc(100vh + 60px)); } }
+    @keyframes pop  { 0%{transform:scale(1);opacity:1;} 50%{transform:scale(2.2);opacity:.7;} 100%{transform:scale(0);opacity:0;} }
+
+    .pts-pop { position: absolute; font-size: 1rem; font-weight: bold; pointer-events: none; animation: riseOut 0.7s ease forwards; z-index: 20; }
+    @keyframes riseOut { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-48px)} }
+
+    .miss-flash { position: absolute; bottom: 0; left: 0; right: 0; height: 5px; background: rgba(255,80,80,0.55); animation: flashOut 0.4s ease forwards; pointer-events: none; }
+    @keyframes flashOut { to { opacity: 0; } }
+
+    /* ── Screens ── */
+    .screen { position: fixed; top: 58px; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 30px 24px; text-align: center; background: rgba(5,15,30,0.8); backdrop-filter: blur(6px); z-index: 150; }
+    .screen h2 { font-size: clamp(1.7rem,7vw,2.4rem); background: linear-gradient(135deg,#90caf9,#e3f2fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .screen p { font-size: 0.95rem; color: #7fb8e8; line-height: 1.8; }
+    .legend { display: flex; gap: 18px; font-size: 0.9rem; color: #7fb8e8; }
+    .score-big { font-size: 3.5rem; color: #90caf9; line-height: 1; }
+    .best-txt { font-size: 0.82rem; color: #4a7ab5; }
+    .screen-btn { padding: 12px 34px; background: rgba(13,40,80,0.85); border: 1px solid rgba(100,180,255,0.35); border-radius: 100px; color: #90caf9; font-size: 0.95rem; font-family: 'Georgia', serif; cursor: pointer; transition: background .2s, transform .15s; -webkit-tap-highlight-color:transparent; }
+    .screen-btn:hover { background: rgba(20,55,105,.95); transform: translateY(-2px); }
+
+    @keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:1} }
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star { position: absolute; background: #90caf9; border-radius: 50%; animation: twinkle linear infinite; }
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<header class="site-header">
+  <a href="index.html" class="back-btn">← Back</a>
+  <div class="header-title">⭐ Catch the Stars</div>
+  <div class="header-lives" id="header-lives">❤️❤️❤️</div>
+</header>
+
+<div class="score-bar">
+  <span>Score: <span class="score-val" id="score-val">0</span></span>
+  <span>Best: <span class="score-val" id="best-val">0</span></span>
+</div>
+
+<div id="game-area"></div>
+
+<!-- Start screen -->
+<div class="screen" id="start-scr">
+  <h2>⭐ Catch the Stars</h2>
+  <p>Tap the falling stars before they escape!<br>Miss 3 and it's game over.</p>
+  <div class="legend">
+    <span>💙 = 1 pt</span>
+    <span>⭐ = 3 pts</span>
+    <span>💫 = 5 pts</span>
+  </div>
+  <p class="best-txt">Best score: <strong id="start-best">0</strong></p>
+  <button class="screen-btn" onclick="startGame()">Play →</button>
+</div>
+
+<!-- End screen -->
+<div class="screen" id="end-scr" style="display:none">
+  <h2>Game Over 🌙</h2>
+  <div class="score-big" id="final-score">0</div>
+  <p class="best-txt">Best: <strong id="final-best">0</strong></p>
+  <button class="screen-btn" onclick="startGame()">Play Again →</button>
+</div>
+
+<script>
+  // bg stars
+  const bgStars = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    const sz = Math.random()*2.5+0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*5).toFixed(1)}s;`;
+    bgStars.appendChild(s);
+  }
+
+  const TYPES = [
+    { emoji: '💙', pts: 1, weight: 60 },
+    { emoji: '⭐', pts: 3, weight: 28 },
+    { emoji: '💫', pts: 5, weight: 12 },
+  ];
+
+  let score = 0, lives = 3, gameActive = false, spawnTimer = null;
+  const gameArea   = document.getElementById('game-area');
+  const scoreVal   = document.getElementById('score-val');
+  const bestVal    = document.getElementById('best-val');
+  const livesEl    = document.getElementById('header-lives');
+  const startScr   = document.getElementById('start-scr');
+  const endScr     = document.getElementById('end-scr');
+  const finalScore = document.getElementById('final-score');
+  const finalBest  = document.getElementById('final-best');
+
+  function getBest() { return parseInt(localStorage.getItem('stars-best')||'0'); }
+  function saveBest() { if (score > getBest()) localStorage.setItem('stars-best', score); }
+
+  function startGame() {
+    score = 0; lives = 3; gameActive = true;
+    updateHUD();
+    startScr.style.display = 'none';
+    endScr.style.display = 'none';
+    gameArea.innerHTML = '';
+    scheduleNext();
+  }
+
+  function pickType() {
+    let r = Math.random() * 100;
+    for (const t of TYPES) { r -= t.weight; if (r <= 0) return t; }
+    return TYPES[0];
+  }
+
+  function getSpeed() { return Math.max(1.0, 3.4 - score * 0.024); }
+  function getDelay() { return Math.max(300, 1050 - Math.min(score, 50) * 13); }
+
+  function scheduleNext() {
+    if (!gameActive) return;
+    spawnTimer = setTimeout(() => { spawnStar(); scheduleNext(); }, getDelay());
+  }
+
+  function spawnStar() {
+    const t = pickType();
+    const el = document.createElement('div');
+    el.className = 'fstar';
+    el.textContent = t.emoji;
+    el.style.left = `${4 + Math.random() * 84}%`;
+    el.style.fontSize = `${20 + Math.random() * 18}px`;
+    el.style.animationDuration = getSpeed() + 's';
+    el._caught = false;
+
+    const onCatch = (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (el._caught || !gameActive) return;
+      el._caught = true;
+      catchStar(el, t);
+    };
+    el.addEventListener('click', onCatch);
+    el.addEventListener('touchstart', onCatch, { passive: false });
+
+    el.addEventListener('animationend', () => {
+      if (!el._caught && el.parentNode) { el.remove(); missStar(); }
+    });
+
+    gameArea.appendChild(el);
+  }
+
+  function catchStar(el, t) {
+    score += t.pts;
+    updateHUD();
+    const rect    = el.getBoundingClientRect();
+    const aRect   = gameArea.getBoundingClientRect();
+    el.style.animation = 'pop 0.22s ease forwards';
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+
+    const pop = document.createElement('div');
+    pop.className = 'pts-pop';
+    pop.textContent = '+' + t.pts;
+    pop.style.left = (rect.left - aRect.left + rect.width/2 - 12) + 'px';
+    pop.style.top  = (rect.top  - aRect.top) + 'px';
+    pop.style.color = t.pts >= 5 ? '#ffd700' : t.pts >= 3 ? '#f0d840' : '#90caf9';
+    gameArea.appendChild(pop);
+    pop.addEventListener('animationend', () => pop.remove(), { once: true });
+  }
+
+  function missStar() {
+    if (!gameActive) return;
+    lives = Math.max(0, lives - 1);
+    updateHUD();
+    const flash = document.createElement('div');
+    flash.className = 'miss-flash';
+    gameArea.appendChild(flash);
+    flash.addEventListener('animationend', () => flash.remove(), { once: true });
+    if (lives === 0) endGame();
+  }
+
+  function updateHUD() {
+    scoreVal.textContent = score;
+    bestVal.textContent  = Math.max(score, getBest());
+    livesEl.textContent  = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+  }
+
+  function endGame() {
+    gameActive = false;
+    clearTimeout(spawnTimer);
+    saveBest();
+    gameArea.querySelectorAll('.fstar').forEach(e => e.remove());
+    finalScore.textContent = score;
+    finalBest.textContent  = getBest();
+    setTimeout(() => { endScr.style.display = ''; }, 400);
+  }
+
+  // Init
+  document.getElementById('start-best').textContent = getBest();
+  bestVal.textContent = getBest();
+</script>
+</body>
+</html>

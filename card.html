@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday, Vivien! 💙</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #050f1e 0%, #0d2340 50%, #071628 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 24px 0 max(80px, env(safe-area-inset-bottom, 80px));
+    }
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star  { position: absolute; background: #90caf9; border-radius: 50%; animation: twinkle linear infinite; }
+    @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    @keyframes float   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes pulse   { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+    @keyframes sentIn  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes sentOut { from { opacity: 1; transform: translateY(0); }    to { opacity: 0; transform: translateY(-12px); } }
+    @keyframes cardReveal { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Scene ── */
+    .scene {
+      position: relative;
+      z-index: 1;
+      perspective: 1600px;
+      perspective-origin: 72% center;
+    }
+
+    /* ── Card wrapper ── */
+    .card-wrap {
+      position: relative;
+      width: min(390px, 92vw);
+      height: min(540px, 72vh);
+    }
+
+    /* ────────────────────────────
+       INSIDE  (always underneath the cover)
+    ──────────────────────────── */
+    .card-inside {
+      position: absolute;
+      inset: 0;
+      border-radius: 26px;
+      background: linear-gradient(150deg, #060e1f 0%, #091830 60%, #050c1b 100%);
+      border: 1px solid rgba(100,180,255,0.13);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+
+    /* ── Phase 1: sentence stage ── */
+    .sentence-stage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 32px 60px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sent-glow {
+      position: absolute;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(100,180,255,0.1) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .sent-progress {
+      position: absolute;
+      top: 22px; right: 24px;
+      font-size: 0.72rem;
+      color: rgba(100,180,255,0.3);
+      letter-spacing: 0.06em;
+    }
+    .sent-text {
+      font-size: clamp(1.15rem, 4vw, 1.45rem);
+      color: #cce5f8;
+      font-style: italic;
+      text-align: center;
+      line-height: 1.75;
+      white-space: pre-line;
+      position: relative;
+      z-index: 1;
+      max-width: 300px;
+    }
+    .sent-hint {
+      position: absolute;
+      bottom: 26px;
+      font-size: 0.7rem;
+      color: rgba(100,180,255,0.35);
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+
+    /* ── Phase 2: full card message ── */
+    .full-card {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 36px 28px 30px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .full-card.visible {
+      animation: cardReveal 0.6s ease both;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .card-to {
+      font-size: 0.8rem;
+      color: #4a7ab5;
+      margin-bottom: 14px;
+      letter-spacing: 0.05em;
+    }
+    .card-msg {
+      font-size: 0.93rem;
+      color: #b6d6f0;
+      line-height: 1.95;
+      font-style: italic;
+      flex: 1;
+      white-space: pre-line;
+    }
+    .card-footer {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(100,180,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 11px;
+    }
+    .card-sig { font-size: 0.82rem; color: #4a7ab5; align-self: flex-end; }
+    .gift-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 26px;
+      background: rgba(13,40,80,0.85);
+      border: 1px solid rgba(100,180,255,0.32);
+      border-radius: 100px;
+      color: #90caf9;
+      font-size: 0.88rem;
+      font-family: 'Georgia', serif;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .gift-btn:hover  { background: rgba(20,55,105,0.95); border-color: rgba(100,180,255,0.55); transform: translateY(-2px); }
+    .gift-btn:active { transform: scale(0.97); }
+
+    /* ────────────────────────────
+       COVER  (swings open around the left hinge)
+    ──────────────────────────── */
+    .card-cover {
+      position: absolute;
+      inset: 0;
+      border-radius: 26px;
+      background: linear-gradient(150deg, #0c2350 0%, #103268 45%, #081e3e 100%);
+      border: 1px solid rgba(100,180,255,0.26);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.65), 0 0 80px rgba(100,180,255,0.09), inset 0 1px 0 rgba(100,180,255,0.14);
+      transform-origin: left center;
+      transform: rotateY(0deg);
+      transition: transform 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      z-index: 2;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 44px 28px 36px;
+      text-align: center;
+    }
+    .card-wrap.opened .card-cover {
+      transform: rotateY(-168deg);
+      pointer-events: none;
+    }
+    /* spine */
+    .card-cover::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 8%; bottom: 8%;
+      width: 3px;
+      background: linear-gradient(to bottom, transparent, rgba(100,180,255,0.22), transparent);
+      border-radius: 0 2px 2px 0;
+    }
+    .cover-glow {
+      position: absolute;
+      inset: 0; border-radius: 26px;
+      background: radial-gradient(ellipse at 50% 38%, rgba(100,180,255,0.13) 0%, transparent 62%);
+      pointer-events: none;
+    }
+    .cover-emoji {
+      font-size: 4rem; display: block; margin-bottom: 22px;
+      animation: float 3.5s ease-in-out infinite;
+      position: relative; z-index: 1;
+    }
+    .cover-title {
+      font-size: clamp(1.7rem, 6vw, 2.3rem);
+      background: linear-gradient(135deg, #90caf9, #e3f2fd 50%, #64b5f6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.3; margin-bottom: 24px;
+      position: relative; z-index: 1;
+    }
+    .cover-divider {
+      width: 50%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(100,180,255,0.3), transparent);
+      margin-bottom: 20px;
+    }
+    .cover-icons {
+      font-size: 1.15rem; letter-spacing: 5px; line-height: 2;
+      opacity: 0.48; margin-bottom: 30px;
+      position: relative; z-index: 1;
+    }
+    .tap-hint {
+      font-size: 0.72rem; color: rgba(100,180,255,0.38);
+      letter-spacing: 0.14em; text-transform: uppercase;
+      animation: pulse 2.2s ease-in-out infinite;
+      position: relative; z-index: 1;
+    }
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<div class="scene">
+  <div class="card-wrap" id="card-wrap">
+
+    <!-- Inside -->
+    <div class="card-inside" id="card-inside">
+
+      <!-- Phase 1: sentence reveal -->
+      <div class="sentence-stage" id="sentence-stage">
+        <div class="sent-glow"></div>
+        <span class="sent-progress" id="sent-progress">1 / 8</span>
+        <p class="sent-text" id="sent-text"></p>
+        <p class="sent-hint" id="sent-hint">tap to continue</p>
+      </div>
+
+      <!-- Phase 2: full card message -->
+      <div class="full-card" id="full-card">
+        <p class="card-to">To Vivien,</p>
+        <!-- ✏️ Edit the message here -->
+        <p class="card-msg">Happy 19th birthday! 🎂
+
+I made you something a little different —
+a whole world filled with blue.
+
+Blue flowers, blue skies, blue animals,
+blue gems, blue poems, and more.
+
+Every single thing in here
+was chosen with you in mind.
+
+I hope it makes you smile. 💙</p>
+        <div class="card-footer">
+          <p class="card-sig">With lots of love ✨</p>
+          <a href="index.html" class="gift-btn" id="gift-btn">Open your gift →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Front cover -->
+    <div class="card-cover" id="card-cover">
+      <div class="cover-glow"></div>
+      <span class="cover-emoji">💙</span>
+      <h1 class="cover-title">Happy Birthday,<br>Vivien!</h1>
+      <div class="cover-divider"></div>
+      <p class="cover-icons">🌸 🌊 🦋 🫐<br>🎧 🪨 💬 📜</p>
+      <p class="tap-hint">tap to open</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 100; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*5).toFixed(1)}s;`;
+    starsEl.appendChild(s);
+  }
+
+  const sentences = [
+    "Happy 19th birthday,\nVivien! 🎂",
+    "I wanted to do something\na little different for you...",
+    "So I made you a world.",
+    "A whole world\nfilled with blue.",
+    "Blue flowers, blue oceans,\nblue animals, blue gems...",
+    "Blue poems, blue quotes,\nand so much more.",
+    "Every single thing was chosen\nwith you in mind.",
+    "I hope it makes you smile. 💙"
+  ];
+
+  let phase = 0;   // 0=cover, 1=sentences, 2=full card
+  let idx   = 0;
+  let busy  = false;
+
+  const cardWrap   = document.getElementById('card-wrap');
+  const sentStage  = document.getElementById('sentence-stage');
+  const sentText   = document.getElementById('sent-text');
+  const sentHint   = document.getElementById('sent-hint');
+  const sentProg   = document.getElementById('sent-progress');
+  const fullCard   = document.getElementById('full-card');
+
+  function openCard() {
+    if (phase !== 0) return;
+    localStorage.setItem('vivien-card-seen', '1');
+    phase = -1; // transitioning — block retaps
+    cardWrap.classList.add('opened');
+    setTimeout(() => {
+      showSentence(0);
+      phase = 1;
+    }, 750);
+  }
+
+  function showSentence(i) {
+    sentText.style.animation = 'none';
+    sentText.offsetHeight;
+    sentText.textContent = sentences[i];
+    sentText.style.animation = 'sentIn 0.45s ease both';
+    sentProg.textContent = `${i + 1} / ${sentences.length}`;
+    sentHint.textContent = (i === sentences.length - 1) ? 'tap to see your card' : 'tap to continue';
+  }
+
+  function advanceSentence() {
+    if (phase !== 1 || busy) return;
+    busy = true;
+    sentText.style.animation = 'sentOut 0.32s ease forwards';
+    setTimeout(() => {
+      idx++;
+      if (idx >= sentences.length) {
+        revealFullCard();
+      } else {
+        showSentence(idx);
+        busy = false;
+      }
+    }, 320);
+  }
+
+  function revealFullCard() {
+    phase = 2;
+    sentStage.style.transition = 'opacity 0.45s ease';
+    sentStage.style.opacity = '0';
+    sentStage.style.pointerEvents = 'none';
+    setTimeout(() => {
+      sentStage.style.display = 'none';
+      fullCard.classList.add('visible');
+      busy = false;
+    }, 450);
+  }
+
+  document.getElementById('sentence-stage').addEventListener('click', () => {
+    if (phase === 1) advanceSentence();
+  });
+  document.getElementById('card-cover').addEventListener('click', openCard);
+
+  document.getElementById('gift-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.body.style.transition = 'opacity 0.5s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => { window.location.href = 'index.html'; }, 520);
+  });
+</script>
+</body>
+</html>

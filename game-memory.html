@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Memory Match 🃏</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; background: linear-gradient(160deg,#050f1e 0%,#0d2340 50%,#071628 100%); min-height: 100vh; color: #e8f4fd; overflow: hidden; user-select: none; -webkit-user-select: none; }
+
+    .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(5,15,30,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(100,180,255,0.1); }
+    .back-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; background: rgba(13,35,64,0.7); border: 1px solid rgba(100,180,255,0.22); border-radius: 100px; color: #90caf9; text-decoration: none; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color:transparent; }
+    .header-title { flex: 1; text-align: center; font-size: 0.95rem; color: #bbdefb; }
+    .header-stats { font-size: 0.78rem; color: #4a7ab5; flex-shrink: 0; min-width: 72px; text-align: right; line-height: 1.5; }
+
+    /* ── Grid area ── */
+    .grid-wrap { position: fixed; top: 58px; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 14px; gap: 16px; }
+    .stats-row { display: flex; gap: 24px; font-size: 0.88rem; color: #7fb8e8; }
+    .stat-val { color: #90caf9; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 440px; }
+
+    /* ── Card ── */
+    .card { aspect-ratio: 1; perspective: 600px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.42s ease; }
+    .card.flipped .card-inner { transform: rotateY(180deg); }
+    .card.matched .card-inner { transform: rotateY(180deg); }
+    .face { position: absolute; inset: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .back-face { background: rgba(13,35,64,0.75); border: 1px solid rgba(100,180,255,0.18); font-size: 1.3rem; color: rgba(100,180,255,0.3); }
+    .front-face { background: rgba(10,28,56,0.9); border: 1px solid rgba(100,180,255,0.35); font-size: clamp(1.5rem,5vw,2rem); transform: rotateY(180deg); }
+    .card.matched .front-face { border-color: rgba(100,180,255,0.7); background: rgba(15,45,90,0.9); box-shadow: 0 0 16px rgba(100,180,255,0.22); }
+    @keyframes matchPop { 0%{transform:rotateY(180deg) scale(1)} 50%{transform:rotateY(180deg) scale(1.12)} 100%{transform:rotateY(180deg) scale(1)} }
+    .card.matched .card-inner { animation: matchPop 0.35s ease; }
+    @keyframes wrongShake { 0%,100%{transform:rotateY(180deg) translateX(0)} 25%{transform:rotateY(180deg) translateX(-5px)} 75%{transform:rotateY(180deg) translateX(5px)} }
+    .card.wrong .card-inner { animation: wrongShake 0.35s ease; }
+
+    /* ── Screens ── */
+    .screen { position: fixed; top: 58px; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 30px 24px; text-align: center; background: rgba(5,15,30,0.85); backdrop-filter: blur(8px); z-index: 150; }
+    .screen h2 { font-size: clamp(1.7rem,7vw,2.4rem); background: linear-gradient(135deg,#90caf9,#e3f2fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .screen p { font-size: 0.95rem; color: #7fb8e8; line-height: 1.8; }
+    .result-row { display: flex; gap: 28px; }
+    .result-item { text-align: center; }
+    .result-big { font-size: 2.2rem; color: #90caf9; display: block; }
+    .result-lbl { font-size: 0.75rem; color: #4a7ab5; text-transform: uppercase; letter-spacing: 0.08em; }
+    .result-msg { font-size: 1.1rem; color: #cce5f8; font-style: italic; }
+    .screen-btn { padding: 12px 34px; background: rgba(13,40,80,0.85); border: 1px solid rgba(100,180,255,0.35); border-radius: 100px; color: #90caf9; font-size: 0.95rem; font-family: 'Georgia', serif; cursor: pointer; transition: background .2s, transform .15s; -webkit-tap-highlight-color: transparent; }
+    .screen-btn:hover { background: rgba(20,55,105,.95); transform: translateY(-2px); }
+
+    .rec-row { display: flex; gap: 22px; font-size: 0.82rem; color: #7fb8e8; }
+    .rec-row strong { color: #90caf9; }
+    .new-rec-badge { font-size: 0.72rem; background: rgba(255,215,0,0.14); border: 1px solid rgba(255,215,0,0.32); color: #ffd700; border-radius: 100px; padding: 2px 9px; margin-left: 4px; vertical-align: middle; }
+
+    @keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:1} }
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star  { position: absolute; background: #90caf9; border-radius: 50%; animation: twinkle linear infinite; }
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<header class="site-header">
+  <a href="index.html" class="back-btn">← Back</a>
+  <div class="header-title">🃏 Memory Match</div>
+  <div class="header-stats" id="header-stats"></div>
+</header>
+
+<div class="grid-wrap" id="grid-wrap" style="display:none">
+  <div class="stats-row">
+    <span>Moves: <span class="stat-val" id="moves-val">0</span></span>
+    <span>Time: <span class="stat-val" id="time-val">0:00</span></span>
+    <span>Pairs: <span class="stat-val" id="pairs-val">0 / 8</span></span>
+  </div>
+  <div class="grid" id="card-grid"></div>
+</div>
+
+<!-- Start screen -->
+<div class="screen" id="start-scr">
+  <h2>🃏 Memory Match</h2>
+  <p>Flip cards to find matching pairs<br>of blue things. Find all 8 pairs to win!</p>
+  <div class="rec-row">
+    <span>Best Moves: <strong id="rec-moves">--</strong></span>
+    <span>Best Time: <strong id="rec-time">--:--</strong></span>
+  </div>
+  <button class="screen-btn" onclick="startGame()">Play →</button>
+</div>
+
+<!-- Win screen -->
+<div class="screen" id="win-scr" style="display:none">
+  <h2>🎉 You found them all!</h2>
+  <div class="result-row">
+    <div class="result-item">
+      <span class="result-big" id="win-moves">0</span>
+      <span class="result-lbl">Moves <span class="new-rec-badge" id="nr-moves" style="display:none">🏆 Record!</span></span>
+    </div>
+    <div class="result-item">
+      <span class="result-big" id="win-time">0:00</span>
+      <span class="result-lbl">Time <span class="new-rec-badge" id="nr-time" style="display:none">🏆 Record!</span></span>
+    </div>
+  </div>
+  <p class="result-msg" id="win-msg">Well done! 💙</p>
+  <button class="screen-btn" onclick="startGame()">Play Again →</button>
+</div>
+
+<script>
+  showStartRecords();
+  const bgEl = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    const sz = Math.random()*2.5+0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*5).toFixed(1)}s;`;
+    bgEl.appendChild(s);
+  }
+
+  const ITEMS = ['💙','🌊','🫐','🔵','💎','🧊','🌀','🐋'];
+
+  let flipped = [], moves = 0, matched = 0, elapsed = 0, timerID = null, canFlip = true;
+
+  function getBestMoves() { const v = localStorage.getItem('mem-best-moves'); return v !== null ? parseInt(v) : null; }
+  function getBestTime()  { const v = localStorage.getItem('mem-best-time');  return v !== null ? parseInt(v) : null; }
+  function showStartRecords() {
+    const bm = getBestMoves(), bt = getBestTime();
+    document.getElementById('rec-moves').textContent = bm !== null ? bm        : '--';
+    document.getElementById('rec-time').textContent  = bt !== null ? fmt(bt)   : '--:--';
+  }
+
+  const grid     = document.getElementById('card-grid');
+  const movesEl  = document.getElementById('moves-val');
+  const timeEl   = document.getElementById('time-val');
+  const pairsEl  = document.getElementById('pairs-val');
+  const startScr = document.getElementById('start-scr');
+  const winScr   = document.getElementById('win-scr');
+  const gridWrap = document.getElementById('grid-wrap');
+
+  function fmt(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+
+  function startGame() {
+    flipped = []; moves = 0; matched = 0; elapsed = 0; canFlip = true;
+    clearInterval(timerID);
+    movesEl.textContent = '0';
+    timeEl.textContent  = '0:00';
+    pairsEl.textContent = '0 / 8';
+    startScr.style.display = 'none';
+    winScr.style.display   = 'none';
+    gridWrap.style.display = '';
+    buildGrid();
+    timerID = setInterval(() => { elapsed++; timeEl.textContent = fmt(elapsed); }, 1000);
+  }
+
+  function buildGrid() {
+    const deck = [...ITEMS, ...ITEMS].sort(() => Math.random() - 0.5);
+    grid.innerHTML = '';
+    deck.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.item = item;
+      card.dataset.id   = i;
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="face back-face">💙</div>
+          <div class="face front-face">${item}</div>
+        </div>`;
+      card.addEventListener('click', () => flipCard(card));
+      card.addEventListener('touchend', (e) => { e.preventDefault(); flipCard(card); }, { passive: false });
+      grid.appendChild(card);
+    });
+  }
+
+  function flipCard(card) {
+    if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    card.classList.add('flipped');
+    flipped.push(card);
+    if (flipped.length === 2) {
+      moves++;
+      movesEl.textContent = moves;
+      canFlip = false;
+      setTimeout(checkMatch, 700);
+    }
+  }
+
+  function checkMatch() {
+    const [a, b] = flipped;
+    if (a.dataset.item === b.dataset.item) {
+      a.classList.add('matched'); b.classList.add('matched');
+      matched++;
+      pairsEl.textContent = `${matched} / 8`;
+      if (matched === ITEMS.length) setTimeout(winGame, 400);
+    } else {
+      a.classList.add('wrong'); b.classList.add('wrong');
+      setTimeout(() => {
+        a.classList.remove('flipped','wrong');
+        b.classList.remove('flipped','wrong');
+      }, 400);
+    }
+    flipped = [];
+    canFlip = true;
+  }
+
+  function winGame() {
+    clearInterval(timerID);
+
+    // Check & save records
+    const prevMoves = getBestMoves(), prevTime = getBestTime();
+    const newMoves  = prevMoves === null || moves   < prevMoves;
+    const newTime   = prevTime  === null || elapsed < prevTime;
+    if (newMoves) localStorage.setItem('mem-best-moves', moves);
+    if (newTime)  localStorage.setItem('mem-best-time',  elapsed);
+    showStartRecords();
+
+    // Populate win screen
+    document.getElementById('win-moves').textContent = moves;
+    document.getElementById('win-time').textContent  = fmt(elapsed);
+    document.getElementById('nr-moves').style.display = newMoves ? '' : 'none';
+    document.getElementById('nr-time').style.display  = newTime  ? '' : 'none';
+    const msg = moves <= 10 ? 'Perfect memory! 🌟' : moves <= 16 ? 'Great job! ⭐' : 'Well done! 💙';
+    document.getElementById('win-msg').textContent = msg;
+    gridWrap.style.display = 'none';
+    winScr.style.display = '';
+  }
+</script>
+</body>
+</html>

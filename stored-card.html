@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Birthday Card 💙</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #050f1e 0%, #0d2340 50%, #071628 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 24px 0 max(80px, env(safe-area-inset-bottom, 80px));
+      animation: pageIn 0.5s ease both;
+    }
+    @keyframes pageIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    @keyframes cardIn  { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star  { position: absolute; background: #90caf9; border-radius: 50%; animation: twinkle linear infinite; }
+
+    /* ── Open card ── */
+    .card-open {
+      position: relative;
+      z-index: 1;
+      width: min(390px, 92vw);
+      min-height: min(540px, 84vh);
+      border-radius: 26px;
+      background: linear-gradient(150deg, #060e1f 0%, #091830 60%, #050c1b 100%);
+      border: 1px solid rgba(100,180,255,0.16);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 80px rgba(100,180,255,0.07);
+      padding: 38px 30px 32px;
+      display: flex;
+      flex-direction: column;
+      animation: cardIn 0.55s ease 0.1s both;
+    }
+    .card-glow {
+      position: absolute; inset: 0; border-radius: 26px;
+      background: radial-gradient(ellipse at 55% 75%, rgba(100,180,255,0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    /* spine decoration on left */
+    .card-open::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 8%; bottom: 8%;
+      width: 3px;
+      background: linear-gradient(to bottom, transparent, rgba(100,180,255,0.2), transparent);
+      border-radius: 0 2px 2px 0;
+    }
+    .card-label {
+      font-size: 0.7rem;
+      color: rgba(100,180,255,0.25);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      position: relative; z-index: 1;
+    }
+    .card-to {
+      font-size: 0.82rem;
+      color: #4a7ab5;
+      margin-bottom: 16px;
+      letter-spacing: 0.04em;
+      position: relative; z-index: 1;
+    }
+    .card-msg {
+      font-size: 0.95rem;
+      color: #b6d6f0;
+      line-height: 2;
+      font-style: italic;
+      flex: 1;
+      white-space: pre-line;
+      position: relative; z-index: 1;
+    }
+    .card-footer {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(100,180,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: relative; z-index: 1;
+    }
+    .card-sig { font-size: 0.82rem; color: #4a7ab5; align-self: flex-end; }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: rgba(13,40,80,0.85);
+      border: 1px solid rgba(100,180,255,0.28);
+      border-radius: 100px;
+      color: #90caf9;
+      font-size: 0.88rem;
+      font-family: 'Georgia', serif;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn:hover  { background: rgba(20,55,105,0.95); border-color: rgba(100,180,255,0.5); transform: translateY(-2px); }
+    .back-btn:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<div class="card-open">
+  <div class="card-glow"></div>
+  <p class="card-label">Your birthday card 💙</p>
+  <p class="card-to">To Vivien,</p>
+  <!-- ✏️ Keep this message matching card.html -->
+  <p class="card-msg">Happy 19th birthday! 🎂
+
+I made you something a little different —
+a whole world filled with blue.
+
+Blue flowers, blue skies, blue animals,
+blue gems, blue poems, and more.
+
+Every single thing in here
+was chosen with you in mind.
+
+I hope it makes you smile. 💙</p>
+  <div class="card-footer">
+    <p class="card-sig">With lots of love ✨</p>
+    <a href="index.html" class="back-btn" id="back-btn">← Back to exploring</a>
+  </div>
+</div>
+
+<script>
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 100; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*5).toFixed(1)}s;`;
+    starsEl.appendChild(s);
+  }
+
+  document.getElementById('back-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.body.style.transition = 'opacity 0.5s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => { window.location.href = 'index.html'; }, 520);
+  });
+</script>
+</body>
+</html>

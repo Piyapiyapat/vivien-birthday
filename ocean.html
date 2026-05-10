@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ocean & Sky — Vivien's Birthday 💙</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; background: linear-gradient(160deg, #050f1e 0%, #0d2340 50%, #071628 100%); min-height: 100vh; color: #e8f4fd; }
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star { position: absolute; background: #90caf9; border-radius: 50%; animation: twinkle linear infinite; }
+    @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    body { padding-top: 58px; }
+    .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(5,15,30,0.9); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgba(100,180,255,0.1); }
+    .back-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; background: rgba(13,35,64,0.7); border: 1px solid rgba(100,180,255,0.22); border-radius: 100px; color: #90caf9; text-decoration: none; font-size: 0.85rem; transition: background 0.2s, border-color 0.2s; white-space: nowrap; flex-shrink: 0; }
+    .back-btn:hover { background: rgba(20,50,90,0.9); border-color: rgba(100,180,255,0.4); }
+    .header-title { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; color: #bbdefb; min-width: 0; }
+    .header-spacer { width: 72px; flex-shrink: 0; }
+    .header-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .header-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .to-top { position: fixed; bottom: 24px; right: 20px; z-index: 200; width: 42px; height: 42px; background: rgba(13,35,64,0.85); border: 1px solid rgba(100,180,255,0.28); border-radius: 50%; color: #90caf9; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateY(8px); transition: opacity 0.3s, transform 0.3s, background 0.2s; pointer-events: none; }
+    .to-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .to-top:hover { background: rgba(20,50,95,0.95); border-color: rgba(100,180,255,0.5); }
+    .page-hero { position: relative; z-index: 1; text-align: center; padding: 28px 20px 16px; }
+    .page-icon { font-size: 2.8rem; display: block; margin-bottom: 10px; animation: float 3.5s ease-in-out infinite; }
+    .page-hero h1 { font-size: clamp(1.8rem,6vw,3rem); background: linear-gradient(135deg,#90caf9,#e3f2fd 45%,#42a5f5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .photo-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; max-width: 920px; margin: 0 auto; padding: 16px 16px 60px; position: relative; z-index: 1; }
+    @media (min-width: 560px) { .photo-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (min-width: 860px) { .photo-grid { grid-template-columns: repeat(4,1fr); max-width: 1200px; } }
+    @media (min-width: 1200px) { .photo-grid { grid-template-columns: repeat(5,1fr); max-width: 1500px; } }
+    .photo-card { border-radius: 18px; overflow: hidden; aspect-ratio: 1; position: relative; box-shadow: 0 4px 24px rgba(0,0,0,0.45); cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; background: #0d2340; }
+    .photo-card:hover { transform: scale(1.05); box-shadow: 0 8px 32px rgba(100,180,255,0.28); }
+    .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: filter 0.3s ease; }
+    .photo-card:hover img { filter: brightness(1.1) saturate(1.15); }
+    .photo-label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent,rgba(2,18,50,0.85)); color: #ddeeff; padding: 22px 12px 10px; font-size: 0.82rem; opacity: 0; transition: opacity 0.3s ease; }
+    .photo-card:hover .photo-label { opacity: 1; }
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,8,24,0.96); z-index: 1000; justify-content: center; align-items: center; padding: 55px 20px 20px; }
+    .lightbox.active { display: flex; }
+    .lightbox-content { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 540px; }
+    .lightbox-content img { width: 100%; max-height: 48vh; object-fit: contain; border-radius: 14px; box-shadow: 0 0 60px rgba(80,160,255,0.25); }
+    .lightbox-fact { color: #b0d8f5; font-size: 0.9rem; text-align: center; line-height: 1.7; padding: 14px 18px; background: rgba(13,35,64,0.75); border-radius: 14px; border: 1px solid rgba(100,180,255,0.18); font-style: italic; width: 100%; }
+    @media (min-width: 640px) { .lightbox-content { flex-direction: row; max-width: 860px; align-items: center; gap: 28px; } .lightbox-content img { width: auto; max-width: 55%; max-height: 78vh; } .lightbox-fact { flex: 1; text-align: left; font-size: 0.95rem; } }
+    .lightbox-close { position: fixed; top: 16px; right: 20px; background: none; border: 2px solid #2a5a9e; color: #90caf9; font-size: 1.4rem; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
+    .lightbox-close:hover { background: rgba(100,180,255,0.15); }
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<header class="site-header">
+  <a href="index.html" class="back-btn">← Back</a>
+  <div class="header-title">
+    <span class="header-icon">🌊</span>
+    <span class="header-name">Ocean & Sky</span>
+  </div>
+  <div class="header-spacer"></div>
+</header>
+<header class="page-hero">
+  <span class="page-icon">🌊</span>
+  <h1>Ocean & Sky</h1>
+</header>
+<div class="photo-grid">
+  <div class="photo-card" data-fact="The ocean covers 71% of Earth but humans have only explored about 20% of it. Somewhere down there is an entire world we've never seen. 🌊" onclick="openLightbox(this)">
+    <img src="images/ocean/turquoise-ocean.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/turquoise,ocean,waves'" alt="Turquoise Ocean" loading="lazy">
+    <div class="photo-label">Turquoise Ocean</div>
+  </div>
+  <div class="photo-card" data-fact="The sky is blue because of Rayleigh scattering — sunlight bouncing off air molecules scatters blue light in all directions. Physics is literally throwing a blue party up there. 💙" onclick="openLightbox(this)">
+    <img src="images/ocean/blue-sky.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,sky,clouds'" alt="Blue Sky" loading="lazy">
+    <div class="photo-label">Blue Sky</div>
+  </div>
+  <div class="photo-card" data-fact="Auroras happen on other planets too! Jupiter has the biggest auroras in the entire solar system. Imagine standing there and looking up at THAT every night. 🌌" onclick="openLightbox(this)">
+    <img src="images/ocean/aurora-borealis.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/aurora,borealis,blue'" alt="Aurora Borealis" loading="lazy">
+    <div class="photo-label">Aurora Borealis</div>
+  </div>
+  <div class="photo-card" data-fact="Iceland's Blue Lagoon is actually a byproduct of a geothermal power plant. One of the most beautiful tourist spots in the world was a complete happy accident. ♨️" onclick="openLightbox(this)">
+    <img src="images/ocean/blue-lagoon.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,lagoon,water'" alt="Blue Lagoon" loading="lazy">
+    <div class="photo-label">Blue Lagoon</div>
+  </div>
+  <div class="photo-card" data-fact="Glaciers look blue because the ice is so dense it absorbs all other colors and only reflects blue light. Basically, the older and denser the ice, the bluer it glows. Old is beautiful. 🧊" onclick="openLightbox(this)">
+    <img src="images/ocean/glacier.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/glacier,ice,blue'" alt="Glacier" loading="lazy">
+    <div class="photo-label">Glacier</div>
+  </div>
+  <div class="photo-card" data-fact="The ocean is so deep that if you placed Mount Everest at the bottom of the Mariana Trench, its peak would still be over a mile underwater. 😲" onclick="openLightbox(this)">
+    <img src="images/ocean/underwater.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/underwater,blue,reef'" alt="Underwater" loading="lazy">
+    <div class="photo-label">Underwater</div>
+  </div>
+  <div class="photo-card" data-fact="Bioluminescent plankton glow blue when disturbed by waves. Some beaches glow like blue fire at night when you walk along the shore. It looks like magic, but it's alive. ✨" onclick="openLightbox(this)">
+    <img src="images/ocean/bioluminescent-sea.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/bioluminescent,ocean,blue'" alt="Bioluminescent Sea" loading="lazy">
+    <div class="photo-label">Bioluminescent Sea</div>
+  </div>
+  <div class="photo-card" data-fact="Some sea caves have been slowly carved out by waves for over 10,000 years — one wave at a time, one drop at a time. The most patient art project in history. 🌊" onclick="openLightbox(this)">
+    <img src="images/ocean/sea-cave.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,sea,cave'" alt="Sea Cave" loading="lazy">
+    <div class="photo-label">Sea Cave</div>
+  </div>
+  <div class="photo-card" data-fact="Frozen lakes make eerie 'singing' sounds in winter as ice expands and contracts with temperature changes. Nature writes its own haunted soundtrack. 🎵" onclick="openLightbox(this)">
+    <img src="images/ocean/frozen-lake.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/frozen,lake,blue,ice'" alt="Frozen Lake" loading="lazy">
+    <div class="photo-label">Frozen Lake</div>
+  </div>
+  <div class="photo-card" data-fact="Our Milky Way galaxy has between 100 and 400 billion stars. Every single tiny dot you see in the night sky is our own cosmic neighborhood. You are never really alone. 🌟" onclick="openLightbox(this)">
+    <img src="images/ocean/milky-way.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/milky,way,blue,night'" alt="Milky Way" loading="lazy">
+    <div class="photo-label">Milky Way Night Sky</div>
+  </div>
+  <div class="photo-card" data-fact="Some coral reefs are over 500 years old. They were already growing when Christopher Columbus was still sailing around looking for India and finding the Americas instead. 🪸" onclick="openLightbox(this)">
+    <img src="images/ocean/blue-coral.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,coral,reef'" alt="Blue Coral" loading="lazy">
+    <div class="photo-label">Blue Coral</div>
+  </div>
+  <div class="photo-card" data-fact="The Amazon River pushes so much fresh water into the Atlantic Ocean that the sea is measurably less salty for 100 miles from the river's mouth. One river changing the ocean. 🌿" onclick="openLightbox(this)">
+    <img src="images/ocean/blue-river.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,river,mountain'" alt="Blue River" loading="lazy">
+    <div class="photo-label">Blue River</div>
+  </div>
+  <div class="photo-card" data-fact="Some mountain lakes get their vivid blue-green color from glacial flour — microscopic rock particles ground down by glaciers and suspended in the water. Nature's own paint. 💎" onclick="openLightbox(this)">
+    <img src="images/ocean/sapphire-lake.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/sapphire,lake,blue'" alt="Sapphire Lake" loading="lazy">
+    <div class="photo-label">Sapphire Lake</div>
+  </div>
+  <div class="photo-card" data-fact="Angel Falls in Venezuela is so tall (979 meters) that the water evaporates and turns to mist before it even reaches the ground. It literally falls and disappears into air. 🌫️" onclick="openLightbox(this)">
+    <img src="images/ocean/blue-waterfall.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,waterfall'" alt="Blue Waterfall" loading="lazy">
+    <div class="photo-label">Blue Waterfall</div>
+  </div>
+  <div class="photo-card" data-fact="Tide pools are one of the most diverse ecosystems on Earth — a tiny complete ocean universe trapped in a crack in a rock. Miniature worlds hiding in plain sight. 🔬" onclick="openLightbox(this)">
+    <img src="images/ocean/tide-pool.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,tide,pool,ocean'" alt="Tide Pool" loading="lazy">
+    <div class="photo-label">Tide Pool</div>
+  </div>
+  <div class="photo-card" data-fact="Mountains appear more blue in the distance because of atmospheric haze scattering light. The further away a dream is, the more blue it looks. Perhaps that's fitting. 💭" onclick="openLightbox(this)">
+    <img src="images/ocean/misty-mountains.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,mountain,mist,fog'" alt="Misty Mountains" loading="lazy">
+    <div class="photo-label">Misty Mountains</div>
+  </div>
+  <div class="photo-card" data-fact="That magical deep blue glow just after sunset is called the 'blue hour' by photographers. It only lasts about 20 minutes and can't be recreated artificially. Catch it or miss it. 📸" onclick="openLightbox(this)">
+    <img src="images/ocean/blue-twilight.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,twilight,dusk,sky'" alt="Blue Twilight" loading="lazy">
+    <div class="photo-label">Blue Twilight</div>
+  </div>
+  <div class="photo-card" data-fact="Only about 10% of an iceberg is visible above water. The phrase 'tip of the iceberg' is literally, scientifically true. Everything interesting is always hidden below. 🧊" onclick="openLightbox(this)">
+    <img src="images/ocean/blue-iceberg.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/blue,iceberg,sea'" alt="Blue Iceberg" loading="lazy">
+    <div class="photo-label">Blue Iceberg</div>
+  </div>
+  <div class="photo-card" data-fact="The Moon's gravity pulls on the ocean to create tides twice a day. The Moon is basically giving the entire ocean a gentle hug from 384,000 km away, every single day. 🌙" onclick="openLightbox(this)">
+    <img src="images/ocean/moonlit-ocean.jpg" onerror="this.onerror=null;this.src='https://loremflickr.com/600/600/moonlight,ocean,blue'" alt="Moonlit Ocean" loading="lazy">
+    <div class="photo-label">Moonlit Ocean</div>
+  </div>
+</div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <div class="lightbox-content">
+    <img id="lightbox-img" src="" alt="">
+    <p class="lightbox-fact" id="lightbox-fact"></p>
+  </div>
+</div>
+<button class="to-top" id="to-top">↑</button>
+<script>
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 90; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*5).toFixed(1)}s;`;
+    starsEl.appendChild(s);
+  }
+  function openLightbox(card) {
+    document.getElementById('lightbox-img').src = card.querySelector('img').src;
+    document.getElementById('lightbox-fact').textContent = card.dataset.fact || '';
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(e) {
+    if (e && e.target === document.getElementById('lightbox-img')) return;
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  const toTopBtn = document.getElementById('to-top');
+  window.addEventListener('scroll', () => { toTopBtn.classList.toggle('visible', window.scrollY > 300); });
+  toTopBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+</script>
+</body>
+</html>

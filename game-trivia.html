@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blue Trivia 🧠</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; background: linear-gradient(160deg,#050f1e 0%,#0d2340 50%,#071628 100%); min-height: 100vh; color: #e8f4fd; overflow-x: hidden; }
+    @keyframes pageIn { from{opacity:0} to{opacity:1} }
+    body { animation: pageIn 0.4s ease both; }
+
+    .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(5,15,30,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(100,180,255,0.1); }
+    .back-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; background: rgba(13,35,64,0.7); border: 1px solid rgba(100,180,255,0.22); border-radius: 100px; color: #90caf9; text-decoration: none; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
+    .header-title { flex: 1; text-align: center; font-size: 0.95rem; color: #bbdefb; }
+    .header-spacer { width: 72px; flex-shrink: 0; }
+
+    @keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:1} }
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star  { position: absolute; background: #90caf9; border-radius: 50%; animation: twinkle linear infinite; }
+
+    /* ── Quiz container ── */
+    .quiz-wrap { position: relative; z-index: 1; padding: 78px 18px 40px; max-width: 580px; margin: 0 auto; }
+
+    /* Progress */
+    .progress-track { height: 4px; background: rgba(100,180,255,0.12); border-radius: 4px; margin-bottom: 10px; }
+    .progress-fill  { height: 100%; background: linear-gradient(90deg, #4a90d9, #90caf9); border-radius: 4px; transition: width 0.4s ease; }
+    .progress-lbl   { font-size: 0.75rem; color: #4a7ab5; text-align: right; margin-bottom: 18px; letter-spacing: 0.05em; }
+
+    /* Question card */
+    .q-card { background: rgba(13,35,64,0.65); border: 1px solid rgba(100,180,255,0.15); border-radius: 20px; padding: 26px 22px 22px; margin-bottom: 16px; animation: slideIn 0.35s ease both; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .q-text { font-size: clamp(0.98rem,3vw,1.1rem); color: #cce5f8; line-height: 1.7; font-style: italic; }
+
+    /* Answers */
+    .answers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+    .ans-btn {
+      width: 100%; padding: 13px 18px; text-align: left;
+      background: rgba(13,35,64,0.6); border: 1px solid rgba(100,180,255,0.15);
+      border-radius: 14px; color: #c0d8f0; font-size: 0.92rem; font-family: 'Georgia', serif;
+      cursor: pointer; transition: background .18s, border-color .18s, transform .12s;
+      -webkit-tap-highlight-color: transparent; line-height: 1.4;
+    }
+    .ans-btn:hover:not(:disabled) { background: rgba(20,50,95,0.8); border-color: rgba(100,180,255,0.32); transform: translateX(4px); }
+    .ans-btn.correct { background: rgba(30,90,50,0.75); border-color: rgba(80,220,120,0.55); color: #a0eabc; }
+    .ans-btn.wrong   { background: rgba(90,25,25,0.75); border-color: rgba(220,80,80,0.45);  color: #f0a0a0; }
+    .ans-btn:disabled { cursor: default; transform: none; }
+
+    .next-btn { display: block; width: 100%; padding: 12px; background: rgba(13,40,80,0.85); border: 1px solid rgba(100,180,255,0.32); border-radius: 14px; color: #90caf9; font-size: 0.92rem; font-family: 'Georgia', serif; cursor: pointer; transition: background .2s, transform .15s; -webkit-tap-highlight-color: transparent; text-align: center; }
+    .next-btn:hover { background: rgba(20,55,105,.95); transform: translateY(-2px); }
+
+    /* Fact reveal */
+    .fun-fact { margin-top: 12px; padding: 12px 16px; background: rgba(8,20,45,0.7); border-left: 3px solid rgba(100,180,255,0.35); border-radius: 0 12px 12px 0; font-size: 0.82rem; color: #7fb8e8; line-height: 1.65; font-style: italic; animation: slideIn 0.3s ease both; }
+
+    /* ── Screens ── */
+    .screen { position: fixed; top: 58px; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 30px 24px; text-align: center; background: rgba(5,15,30,0.85); backdrop-filter: blur(8px); z-index: 150; }
+    .screen h2 { font-size: clamp(1.7rem,7vw,2.4rem); background: linear-gradient(135deg,#90caf9,#e3f2fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .screen p { font-size: 0.95rem; color: #7fb8e8; line-height: 1.8; }
+    .score-big { font-size: 3.5rem; color: #90caf9; line-height: 1; }
+    .score-sub { font-size: 1rem; color: #7fb8e8; }
+    .result-msg { font-size: 1.05rem; color: #cce5f8; font-style: italic; }
+    .screen-btn { padding: 12px 34px; background: rgba(13,40,80,0.85); border: 1px solid rgba(100,180,255,0.35); border-radius: 100px; color: #90caf9; font-size: 0.95rem; font-family: 'Georgia', serif; cursor: pointer; transition: background .2s, transform .15s; -webkit-tap-highlight-color:transparent; }
+    .screen-btn:hover { background: rgba(20,55,105,.95); transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<header class="site-header">
+  <a href="index.html" class="back-btn">← Back</a>
+  <div class="header-title">🧠 Blue Trivia</div>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="quiz-wrap" id="quiz-wrap" style="display:none">
+  <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:10%"></div></div>
+  <div class="progress-lbl" id="prog-lbl">1 / 10</div>
+  <div class="q-card" id="q-card">
+    <p class="q-text" id="q-text"></p>
+  </div>
+  <div class="answers" id="answers"></div>
+  <div class="fun-fact" id="fun-fact" style="display:none"></div>
+  <button class="next-btn" id="next-btn" style="display:none" onclick="nextQuestion()">Next question →</button>
+</div>
+
+<!-- Start screen -->
+<div class="screen" id="start-scr">
+  <h2>🧠 Blue Trivia</h2>
+  <p>10 questions about everything blue —<br>facts straight from the gallery!</p>
+  <button class="screen-btn" onclick="startQuiz()">Start Quiz →</button>
+</div>
+
+<!-- End screen -->
+<div class="screen" id="end-scr" style="display:none">
+  <h2>Quiz Complete! 🎉</h2>
+  <div class="score-big" id="final-score">0</div>
+  <div class="score-sub">out of 10</div>
+  <p class="result-msg" id="result-msg"></p>
+  <button class="screen-btn" onclick="startQuiz()">Play Again →</button>
+</div>
+
+<script>
+  const bgEl = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    const sz = Math.random()*2.5+0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*5).toFixed(1)}s;`;
+    bgEl.appendChild(s);
+  }
+
+  const QUESTIONS = [
+    {
+      q: "Morpho butterfly wings look vivid blue, but they actually have zero blue pigment. Their color comes from…",
+      answers: ["Blue dye absorbed from plants", "Microscopic structures that reflect blue light", "Tiny blue crystals in the scales", "Blue blood showing through the wings"],
+      correct: 1,
+      fact: "It's a beautiful optical illusion — the wings have no color pigment at all. The microscopic structures on each scale act like tiny prisms."
+    },
+    {
+      q: "The word 'aquamarine' literally means what?",
+      answers: ["Blue crystal", "Ocean light", "Water of the sea", "Stone of the deep"],
+      correct: 2,
+      fact: "Sailors wore aquamarine for protection, believing it was treasure from mermaids washed up from the ocean floor. 🧜"
+    },
+    {
+      q: "Cotton candy was invented by whom?",
+      answers: ["A baker in France", "A dentist named William Morrison", "A carnival ride operator", "A sugar factory owner"],
+      correct: 1,
+      fact: "A dentist invented the thing that destroys teeth. This is the greatest plot twist in food history. 🦷"
+    },
+    {
+      q: "The word 'fluorescence' was named after which blue mineral?",
+      answers: ["Blue agate", "Lapis lazuli", "Fluorite", "Azurite"],
+      correct: 2,
+      fact: "Fluorite glows vivid blue-violet under UV light — and the word fluorescence literally comes from its name. 💡"
+    },
+    {
+      q: "Japan's bullet train nose was designed to reduce noise. Which animal inspired its shape?",
+      answers: ["Dolphin", "Blue shark", "Kingfisher", "Blue jay"],
+      correct: 2,
+      fact: "Engineers copied the kingfisher's beak shape — it enters the water so smoothly that it barely causes a ripple. The train does the same in tunnels! 🚅"
+    },
+    {
+      q: "Iceland's famous Blue Lagoon spa is actually a byproduct of what?",
+      answers: ["A volcanic eruption", "A glacier melting", "A geothermal power plant", "An underground hot spring"],
+      correct: 2,
+      fact: "One of the most beautiful tourist destinations in the world was a complete happy accident from a power plant. ♨️"
+    },
+    {
+      q: "The blue-ringed octopus is the size of a golf ball. How many adult humans can its venom kill?",
+      answers: ["3", "10", "26", "50"],
+      correct: 2,
+      fact: "It carries enough venom to kill 26 people — and there's no antidote. The most dangerous cute thing in existence. 😅"
+    },
+    {
+      q: "Bubble tea was invented in which country in the 1980s?",
+      answers: ["Japan", "China", "South Korea", "Taiwan"],
+      correct: 3,
+      fact: "The 'bubbles' refers to TWO things at once — the foam on top AND the tapioca pearls at the bottom. 🧋"
+    },
+    {
+      q: "Larimar is one of the rarest gemstones on Earth. It's found in only one location — where?",
+      answers: ["Sri Lanka", "Dominican Republic", "Madagascar", "Iceland"],
+      correct: 1,
+      fact: "Larimar only exists in a single remote mountain in the Dominican Republic. Some things are beautiful precisely because they're rare. 💙"
+    },
+    {
+      q: "Before blue paint was invented, artists ground up which blue stone to make the most expensive pigment?",
+      answers: ["Sapphire", "Turquoise", "Lapis lazuli", "Azurite"],
+      correct: 2,
+      fact: "Ultramarine (from lapis lazuli) was more expensive than gold. Vermeer's famous paintings used it — a blue rock became art. 🎨"
+    },
+  ];
+
+  let qIdx = 0, score = 0;
+  const startScr  = document.getElementById('start-scr');
+  const endScr    = document.getElementById('end-scr');
+  const quizWrap  = document.getElementById('quiz-wrap');
+  const qText     = document.getElementById('q-text');
+  const answersEl = document.getElementById('answers');
+  const progFill  = document.getElementById('prog-fill');
+  const progLbl   = document.getElementById('prog-lbl');
+  const nextBtn   = document.getElementById('next-btn');
+  const funFact   = document.getElementById('fun-fact');
+  const qCard     = document.getElementById('q-card');
+
+  function startQuiz() {
+    qIdx = 0; score = 0;
+    startScr.style.display = 'none';
+    endScr.style.display   = 'none';
+    quizWrap.style.display = '';
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = QUESTIONS[qIdx];
+    // Reset UI
+    funFact.style.display = 'none';
+    nextBtn.style.display = 'none';
+    progFill.style.width = `${((qIdx + 1) / QUESTIONS.length) * 100}%`;
+    progLbl.textContent  = `${qIdx + 1} / ${QUESTIONS.length}`;
+
+    // Animate card
+    qCard.style.animation = 'none';
+    qCard.offsetHeight;
+    qCard.style.animation = 'slideIn 0.35s ease both';
+    qText.textContent = q.q;
+
+    // Build answer buttons
+    answersEl.innerHTML = '';
+    q.answers.forEach((ans, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'ans-btn';
+      btn.textContent = `${['A','B','C','D'][i]})  ${ans}`;
+      btn.addEventListener('click', () => selectAnswer(i, q));
+      answersEl.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(chosen, q) {
+    const btns = answersEl.querySelectorAll('.ans-btn');
+    btns.forEach(b => b.disabled = true);
+
+    btns[q.correct].classList.add('correct');
+    if (chosen !== q.correct) btns[chosen].classList.add('wrong');
+    else score++;
+
+    // Show fun fact
+    funFact.style.display = '';
+    funFact.style.animation = 'none';
+    funFact.offsetHeight;
+    funFact.style.animation = 'slideIn 0.3s ease both';
+    funFact.textContent = '💙 ' + q.fact;
+
+    nextBtn.textContent = qIdx < QUESTIONS.length - 1 ? 'Next question →' : 'See my score →';
+    nextBtn.style.display = '';
+  }
+
+  function nextQuestion() {
+    qIdx++;
+    if (qIdx >= QUESTIONS.length) {
+      showResult();
+    } else {
+      showQuestion();
+    }
+  }
+
+  function showResult() {
+    quizWrap.style.display = 'none';
+    document.getElementById('final-score').textContent = score;
+    const msgs = [
+      [9, "Blue genius! You know everything! 🌟"],
+      [7, "Impressive! You really paid attention. ⭐"],
+      [5, "Good effort! Blue things are tricky. 💙"],
+      [0, "Keep exploring — the answers are in the gallery! 😊"],
+    ];
+    const msg = msgs.find(([min]) => score >= min);
+    document.getElementById('result-msg').textContent = msg[1];
+    endScr.style.display = '';
+  }
+</script>
+</body>
+</html>
